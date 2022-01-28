@@ -1,5 +1,14 @@
 const Users = require("./auth-model");
 
+function requiredFields(req, res, next) {
+  if (!req.body.username || !req.body.password) {
+    res.status(401).json({ message: "username and password required" })
+  } else {
+    next()
+  }
+}
+
+
 async function checkUsernameFree(req, res, next) {
   try {
   const userExists = await Users.findBy({ username: req.body.username })
@@ -34,6 +43,7 @@ function checkPasswordLength(req, res, next) {
 }
 
 module.exports = {
+  requiredFields,
   checkUsernameFree,
   checkUsernameExists,
   checkPasswordLength
