@@ -1,7 +1,9 @@
 const router = require('express').Router();
+const bcrypt = require('bcrypt');
+const Users = require('./auth-model')
+const { checkUsernameFree } = require('./auth-middleware')
 
-router.post('/register', (req, res) => {
-  res.end('implement register, please!');
+router.post('/register', checkUsernameFree, async (req, res, next) => {
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
@@ -24,9 +26,20 @@ router.post('/register', (req, res) => {
     3- On FAILED registration due to `username` or `password` missing from the request body,
       the response body should include a string exactly as follows: "username and password required".
 
-    4- On FAILED registration due to the `username` being taken,
-      the response body should include a string exactly as follows: "username taken".
   */
+      try {
+        const { username, password } = req.body
+        if (!username || !password) {
+          res.status(401).json({ message: "username and password required" })
+        } else {
+        const hash = bcrypt.hashSync(password, 8)
+        const newUser = { username, password: hash }
+        const inserted = await Users.add(newUser)
+        res.json(inserted)
+        }
+      } catch (err) {
+        next(err)
+      }
 });
 
 router.post('/login', (req, res) => {
