@@ -73,32 +73,31 @@ describe('POST /login', () => {
 describe('GET jokes', () => {
   let token = '';
   test('no token', async () => {
+    const expected = {"message": "token required" };
     const res = await request(server)
     .get('/api/jokes/')
     expect(res.status).toEqual(401)
+    expect(res.body).toEqual(expected)
   })
-  describe('sucessful and wrong token', () => {
-    it('registered', async () => {
+  describe('sucessful with token', () => {
+    test('registered', async () => {
       const res = await request(server)
       .post('/api/auth/register')
       .send({ username: 'test2', password: '1234' })
       expect(res.status).toEqual(201)
     })
-    it('logged in', async () => {
+    test('logged in', async () => {
       const res = await request(server)
       .post('/api/auth/login')
       .send({ username: 'test2', password: '1234' })
       token = res.body.token;
-      expect(res.status).toEqual(200)
+      expect(res.status).toEqual(200);
+      expect(token).toBeDefined();
     })
     test('successful get', async () => {
-    //   const expected =     {
-    //     "id": "0189hNRf2g",
-    //     "joke": "I'm tired of following my dreams. I'm just going to ask them where they are going and meet up with them later."
-    // }
       const res = await request(server)
-      .get('/api/jokes/').set('Authorization', 'Bearer ' + token)
-      expect(res.status).toEqual(200)
+      .get('/api/jokes/').set('Authorization', `Bearer ${token}`)
+      expect(res.body).toHaveLength(3)
     })
   })
 })
