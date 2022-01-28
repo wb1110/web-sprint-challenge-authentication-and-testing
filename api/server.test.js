@@ -28,12 +28,6 @@ describe('POST /register', () => {
     .send({ username: 'test', password: '1234' })
     expect(res.status).toEqual(422)
   })
-  test('username taken', async () => {
-    const res = await request(server)
-    .post('/api/auth/register')
-    .send({ username: 'test', password: '1234' })
-    expect(res.status).toEqual(422)
-  })
   test('missing information', async () => {
     const res = await request(server)
     .post('/api/auth/register')
@@ -73,5 +67,34 @@ describe('POST /login', () => {
     .send({ username: 'test', password: '12345' })
     expect(res.status).toEqual(401)
     expect(res.body).toEqual(expected)
+  })
+})
+
+describe('GET jokes', () => {
+  test('no token', async () => {
+    const res = await request(server)
+    .get('/api/jokes/')
+    expect(res.status).toEqual(401)
+  })
+  describe('sucessful and wrong token', () => {
+    let token = null;
+
+    beforeEach(() => {
+      request(server)
+      .post('/api/auth/register')
+      .send({ username: 'test', password: '1234' })
+      .end;
+      request(server)
+        .post('/api/auth/login')
+        .send({ username: 'test', password: '1234' })
+        .end((err, res) => {
+          token = res.body.token; // Or something
+        });
+    });
+    test('successful', async () => {
+      const res = await request(server)
+      .get('/api/jokes/').set('Authorization', 'Bearer ' + token)
+      expect(res.status).toEqual(200)
+    })
   })
 })
